@@ -1,143 +1,34 @@
-import { useState, useEffect } from 'react'
-import s from './App.module.css'
-import { api } from './constants/baseUrl.js'
-import { Card } from './components/card'
-import { InfoModal } from './components/infoModal'
-import logo from '/logo.webp'
-import { Spinner } from './components/spinner.jsx'
-import ResponsivePagination from 'react-responsive-pagination';
-import 'react-responsive-pagination/themes/classic-light-dark.css';
+import s from "./App.module.css";
 
+import "leaflet/dist/leaflet.css";
+import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
+import "leaflet-defaulticon-compatibility";
+
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
 function App() {
-  const [data, setData] = useState([])
-  const [searchName, setSearchName] = useState("")
-  const [searchPage, setSearchPage] = useState("")
-  const [searchStatus, setSearchStatus] = useState("")
-  const [modal, setModal] = useState();
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState(false);
-
-  useEffect(() => {
-    api.get(`/character/?name=${searchName}&page=${searchPage}&status=${searchStatus}`).then((response) => {
-      setData(response.data.results)
-      setLoading(false)
-      setErro(false)
-    }).catch((error) => {
-      if (error.response.status === 404) {
-        setErro(true)
-        console.error("Error, Characters Not Found!!!", error)
-      }
-      if (error.response.status === 500) {
-        setErro(true)
-        console.error("Error, Internal Server Error!!!", error)
-      }
-      console.error("Error, Could Not Get API!!!", error)
-      setLoading(false)
-      setErro(true)
-    })
-  }, [searchPage, searchName, searchStatus])
+  const position = [-25.5934726, -49.3348188];
 
   return (
-    <>
-
-     {modal !== undefined && (
-  <InfoModal
-    data={data[modal]}
-    close={() => setModal(undefined)}
-    onNext={() => modal < data.length - 1 && setModal(modal + 1)}
-    onPrev={() => modal > 0 && setModal(modal - 1)}
-    hasNext={modal < data.length - 1}
-    hasPrev={modal > 0}
-  />
-)}
-
-      <main>
-
-        <img src={logo} alt="Logo" className={s.logo} />
-
-        <div className={s.wrapPagination}>
-          <ResponsivePagination
-            current={searchPage}
-            total={42}
-            onPageChange={setSearchPage}
-          />
-        </div>
-
-        <div className={s.wrapInputs}>
-          <input
-            type="text"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            placeholder="Search by Name"
-            className={s.inputName}
-          />
-
-          <div className={s.radioGroup}>
-            <label>
-              <input
-                type="radio"
-                value=""
-                checked={searchStatus === ""}
-                onChange={(e) => setSearchStatus(e.target.value)}
-              />
-              All
-            </label>
-
-            <label>
-              <input
-                type="radio"
-                value="Alive"
-                checked={searchStatus === "Alive"}
-                onChange={(e) => setSearchStatus(e.target.value)}
-              />
-              Alive
-            </label>
-
-            <label>
-              <input
-                type="radio"
-                value="Dead"
-                checked={searchStatus === "Dead"}
-                onChange={(e) => setSearchStatus(e.target.value)}
-              />
-              Dead
-            </label>
-
-            <label>
-              <input
-                type="radio"
-                value="Unknown"
-                checked={searchStatus === "Unknown"}
-                onChange={(e) => setSearchStatus(e.target.value)}
-              />
-              Unknown
-            </label>
-          </div>
-        </div>
-
-        {erro &&
-          <div className={s.wrapErro}>
-            <h2>Error when searching for characters ⛔</h2>
-          </div>}
-
-        {loading ? <Spinner /> :
-          <div className={s.wrapCards}>
-            {data.map((item, index) => {
-              return (
-                !erro && <div key={`${searchPage}-${searchName}-${searchStatus}-${index}`} className={s.wrapCard}>
-                  <Card image={item.image} name={item.name} species={item.species} />
-                  <button onClick={() => setModal(index)} className={s.infoBtn}>➕ Info {item.name}</button>
-                </div>
-              )
-            })}
-          </div>
-        }
-
-      </main>
-
-    </>
-  )
+    <div className={s.wrapAll}>
+      <h1>Mapa do Leaftlet</h1>
+      <div className={s.wrapmap}>
+      <MapContainer style={{borderRadius: "20px" ,width: "100%", height: "100%"}}center={position} zoom={17} scrollWheelZoom={false}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={position}>
+          <Popup>
+            <a target='_blank' href="https://www.google.com/maps/place/Instituto+FORJA/@-25.5934726,-49.3348188,17z/data=!4m14!1m7!3m6!1s0x94dcfe7bd2686f37:0x3f0cfdd684d6f712!2sInstituto+FORJA!8m2!3d-25.5934726!4d-49.3322439!16s%2Fg%2F11btm0twp7!3m5!1s0x94dcfe7bd2686f37:0x3f0cfdd684d6f712!8m2!3d-25.5934726!4d-49.3322439!16s%2Fg%2F11btm0twp7?entry=ttu&g_ep=EgoyMDI1MTIwMi4wIKXMDSoASAFQAw%3D%3D">
+              Ir para Google Maps
+            </a>
+          </Popup>
+        </Marker>
+      </MapContainer>
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
